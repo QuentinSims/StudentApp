@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Student.Shared.Utilities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Student.Shared.Models.Authentication
 {
@@ -27,7 +28,15 @@ namespace Student.Shared.Models.Authentication
         [StringLength(256, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 256 characters")]
         [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Username can only contain letters, numbers, underscores, and hyphens")]
         public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 12,ErrorMessage = "Password must be between 12 and 100 characters")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).*$", ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character")]
+        [UniqueCharacters(4, ErrorMessage = "Password must contain at least 4 unique characters")]
         public string Password { get; set; }
+
+        [Required(ErrorMessage = "Please confirm your password")]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; }
     }
 }
