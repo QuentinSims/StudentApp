@@ -8,7 +8,7 @@ namespace Student.Shared.DataLayer
 {
     public partial class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)  {  }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -61,7 +61,9 @@ namespace Student.Shared.DataLayer
                     Schedule = "MWF 10:00-11:00",
                     Department = "Computer Science",
                     AvailableSeats = 15,
-                    MaxSeats = 30
+                    MaxSeats = 30,
+                    CreatedBy = "system",
+                    CreatedOn = new DateTime(2024, 7, 25)
                 },
                 new Course
                 {
@@ -73,7 +75,9 @@ namespace Student.Shared.DataLayer
                     Schedule = "TTH 9:00-10:30",
                     Department = "Mathematics",
                     AvailableSeats = 8,
-                    MaxSeats = 25
+                    MaxSeats = 25,
+                    CreatedBy = "system",
+                    CreatedOn = new DateTime(2024, 7, 25)
                 },
                 new Course
                 {
@@ -85,7 +89,9 @@ namespace Student.Shared.DataLayer
                     Schedule = "MWF 1:00-2:00",
                     Department = "Physics",
                     AvailableSeats = 0,
-                    MaxSeats = 20
+                    MaxSeats = 20,
+                    CreatedBy = "system",
+                    CreatedOn = new DateTime(2024, 7, 25)
                 },
                 new Course
                 {
@@ -97,7 +103,9 @@ namespace Student.Shared.DataLayer
                     Schedule = "TTH 2:00-3:30",
                     Department = "Chemistry",
                     AvailableSeats = 12,
-                    MaxSeats = 28
+                    MaxSeats = 28,
+                    CreatedBy = "system",
+                    CreatedOn = new DateTime(2024, 7, 25)
                 },
                 new Course
                 {
@@ -109,7 +117,9 @@ namespace Student.Shared.DataLayer
                     Schedule = "MWF 11:00-12:00",
                     Department = "Biology",
                     AvailableSeats = 20,
-                    MaxSeats = 35
+                    MaxSeats = 35,
+                    CreatedBy = "system",
+                    CreatedOn = new DateTime(2024, 7, 25)
                 },
                 new Course
                 {
@@ -121,7 +131,9 @@ namespace Student.Shared.DataLayer
                     Schedule = "MWF 9:00-10:00",
                     Department = "Computer Science",
                     AvailableSeats = 5,
-                    MaxSeats = 30
+                    MaxSeats = 30,
+                    CreatedBy = "system",
+                    CreatedOn = new DateTime(2024, 7, 25)
                 },
                 new Course
                 {
@@ -133,8 +145,11 @@ namespace Student.Shared.DataLayer
                     Schedule = "TTH 3:00-4:30",
                     Department = "Fine Arts",
                     AvailableSeats = 18,
-                    MaxSeats = 20
+                    MaxSeats = 20,
+                    CreatedBy = "system",
+                    CreatedOn = new DateTime(2024, 7, 25)
                 }
             );
         }
+    }
 }

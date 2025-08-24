@@ -10,5 +10,6 @@
         public string Schedule { get; set; } = "";
         public DateTime EnrollmentDate { get; set; }
         public string StudentId { get; set; } = "";
+        public Guid CourseId { get; set; } 
     }
 }

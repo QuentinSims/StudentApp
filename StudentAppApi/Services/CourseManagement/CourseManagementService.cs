@@ -45,21 +45,6 @@ namespace StudentAppApi.Services.CourseManagement
             return data.Select(CourseManagementMapper.ConvertEnrolledToResponseDTO).ToList();
         }
 
-        public async Task<bool> AddCourseAsync(AddEditCourseModelDTO model, UserClaims? userClaims)
-        {
-            var entity = BuildEntity(model, userClaims);
-            await _courseRepository.Create(entity);
-            return true;
-        }
-
-        public async Task<bool> UpdateCourseAsync(Guid id, AddEditCourseModelDTO model, UserClaims? userClaims)
-        {
-            var entity = await _courseRepository.FindEntityAsync(id);
-            BuildUpdateEntity(model,entity, userClaims);
-            await _courseRepository.Update(entity);
-            return true;
-        }
-
         public async Task<bool> CreateLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model, UserClaims? userClaims)
         {
             var courseEntity = await _courseRepository.FindEntityAsync(model.CourseId);
@@ -108,7 +93,6 @@ namespace StudentAppApi.Services.CourseManagement
             entity.MaxSeats = model.MaxSeats;
             entity.UpdateModified(userClaims?.Username);
         }
-
         public Student.Shared.DomainModels.CourseManagement.EnrolledCourse BuildEnrolledEntity(LinkBetweenStudentAndCourse model, Student.Shared.DomainModels.CourseManagement.Course courseEntity, UserClaims? userClaims)
         {
             var enrolledCourse = new Student.Shared.DomainModels.CourseManagement.EnrolledCourse

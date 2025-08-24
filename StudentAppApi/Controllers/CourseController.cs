@@ -25,9 +25,9 @@ namespace StudentAppApi.Controllers
         /// <summary>
         /// Get courses
         /// </summary>
-        /// <returns>List of all courses</returns>
+        /// <returns>List of all enrolled courses</returns>
         [HttpGet]
-        [Route(ApiRoutes.GetAllCourses)]
+        [Route(ApiRoutes.GetAllEnrolledCourses)]
         [ProducesResponseType(typeof(List<EnrolledCourseModelDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -42,9 +42,9 @@ namespace StudentAppApi.Controllers
         /// <summary>
         /// Get courses
         /// </summary>
-        /// <returns>List of all enrolled courses</returns>
+        /// <returns>List of all  courses</returns>
         [HttpGet]
-        [Route(ApiRoutes.GetAllEnrolledCourses)]
+        [Route(ApiRoutes.GetAllCourses)]
         [ProducesResponseType(typeof(List<CourseModelDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

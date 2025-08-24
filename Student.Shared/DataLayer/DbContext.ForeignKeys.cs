@@ -17,7 +17,6 @@ namespace Student.Shared.DataLayer
         {
             modelBuilder.Entity<ApplicationUser>(entity =>
             {
-                entity.HasQueryFilter(e => !e.IsDeleted);
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.UserName).IsUnique();
                 entity.Property(e => e.FirstName).HasMaxLength(250);
@@ -31,7 +30,7 @@ namespace Student.Shared.DataLayer
                 .HasOne(x => x.Student)
                 .WithMany()
                 .HasForeignKey(e => e.StudentId)
-                 .IsRequired();
+                .IsRequired();
 
             modelBuilder.Entity<EnrolledCourse>()
                            .HasOne(x => x.Course)
