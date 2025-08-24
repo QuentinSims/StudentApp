@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Student.Shared.Consts;
 using Student.Shared.Models.CourseManagement;
 using StudentAppApi.Interfaces.Authentication;
@@ -8,7 +9,7 @@ namespace StudentAppApi.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class CourseController : ControllerBase
     {
         private readonly ICourseManagementService _courseManagementService;
