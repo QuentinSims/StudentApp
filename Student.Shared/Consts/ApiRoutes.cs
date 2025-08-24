@@ -5,6 +5,7 @@
         #region Get All Routes
         public const string BaseGetAll = "GetAll";
         public const string GetAllCourses = $"{BaseGetAll}Courses";
+        public const string GetAllEnrolledCourses = $"{BaseGetAll}EnrolledCourses";
         #endregion
 
         #region Get By Id
@@ -15,6 +16,7 @@
         #region Add
         public const string BaseAdd = "Create";
         public const string AddCourse = $"{BaseAdd}Courses";
+        public const string AddLinkBetweenStudentAndCourse = $"{BaseAdd}LinkBetweenStudentAndCourse";
         #endregion
 
         #region Update by Id

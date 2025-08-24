@@ -32,6 +32,12 @@ namespace Student.Shared.DataLayer
                 .WithMany()
                 .HasForeignKey(e => e.StudentId)
                  .IsRequired();
+
+            modelBuilder.Entity<EnrolledCourse>()
+                           .HasOne(x => x.Course)
+                           .WithMany()
+                           .HasForeignKey(e => e.CourseId)
+                            .IsRequired();
         }
 
     }

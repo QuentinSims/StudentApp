@@ -11,8 +11,15 @@ using StudentApp.Services.JwtService;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
+var configurationManager = builder.Configuration;
+var apiBaseUrl = configurationManager.GetSection("ApiBaseUrl").Get<string>();
 
-builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+if (string.IsNullOrWhiteSpace(apiBaseUrl))
+{
+    throw new InvalidOperationException("ApiBaseUrl is not configured properly in the appsettings.");
+}
+
+builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
@@ -30,7 +37,7 @@ builder.Services.AddSingleton(sp =>
 
     return new HttpClient(handler)
     {
-        BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress)
+        BaseAddress = new Uri(configurationManager.GetSection("ApiBaseUrl").Get<string>())
     };
 });
 

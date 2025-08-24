@@ -26,7 +26,12 @@ namespace StudentApp.Services.CourseService
 
         public async Task<List<CourseModelDTO>> GetAllCoursesAsync()
         {
-            return await _httpClient.GetFromJsonAsync<List<CourseModelDTO>>("api/courses");
+            return await _httpClient.GetFromJsonAsync<List<CourseModelDTO>>("api/getallcourses");
+        }
+
+        public async Task<List<EnrolledCourseModelDTO>> GetAllEnrolledCoursesAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<List<EnrolledCourseModelDTO>>("api/getallenrolledcourses");
         }
 
         public async Task<List<EnrolledCourseModelDTO>> GetCoursesLinkedToStudentAsync(string studentId)

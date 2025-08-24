@@ -12,9 +12,14 @@ namespace Student.Shared.DomainModels.CourseManagement
         public string Schedule { get; set; } = "";
         public DateTime EnrollmentDate { get; set; }
 
+        public Guid CourseId { get; set; }
         public string StudentId { get; set; }
 
         [ForeignKey(nameof(StudentId))]
         public virtual ApplicationUser Student { get; set; }
+
+
+        [ForeignKey(nameof(CourseId))]
+        public virtual Course Course { get; set; }
     }
 }

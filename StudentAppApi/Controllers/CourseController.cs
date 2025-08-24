@@ -28,6 +28,23 @@ namespace StudentAppApi.Controllers
         /// <returns>List of all courses</returns>
         [HttpGet]
         [Route(ApiRoutes.GetAllCourses)]
+        [ProducesResponseType(typeof(List<EnrolledCourseModelDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult<List<EnrolledCourseModelDTO>>> GetAllEnrolledCourses()
+        {
+            var result = await _courseManagementService.GetEnrolledCoursesAsync();
+            return Ok(result);
+        }
+
+
+        /// <summary>
+        /// Get courses
+        /// </summary>
+        /// <returns>List of all enrolled courses</returns>
+        [HttpGet]
+        [Route(ApiRoutes.GetAllEnrolledCourses)]
         [ProducesResponseType(typeof(List<CourseModelDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -37,6 +54,7 @@ namespace StudentAppApi.Controllers
             var result = await _courseManagementService.GetCoursesAsync();
             return Ok(result);
         }
+
 
         /// <summary>
         /// Retrieves a student courses by their ID
@@ -62,32 +80,14 @@ namespace StudentAppApi.Controllers
         /// <param name="model">The courses model</param>
         /// <returns>Status result</returns>
         [HttpPost]
-        [Route(ApiRoutes.AddCourse)]
+        [Route(ApiRoutes.AddLinkBetweenStudentAndCourse)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<bool>> AddCourses([FromBody] AddEditCourseModelDTO model)
+        public async Task<ActionResult<bool>> AddCourses([FromBody] LinkBetweenStudentAndCourse model)
         {
-            var result = await _courseManagementService.AddCourseAsync(model, _claims.GetUserClaims());
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Updates an existing course
-        /// </summary>
-        /// <param name="id">The unique identifier of the course</param>
-        /// <param name="model">The course update model</param>
-        /// <returns>Status result</returns>
-        [HttpPost]
-        [Route($"{ApiRoutes.UpdateCourse}/{{id}}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<bool>> UpdateUser(Guid id, [FromBody] AddEditCourseModelDTO model)
-        {
-            var result = await _courseManagementService.UpdateCourseAsync(id, model, _claims.GetUserClaims());
+            var result = await _courseManagementService.CreateLinkBetweenStudentAndCourseAsync(model, _claims.GetUserClaims());
             return Ok(result);
         }
 

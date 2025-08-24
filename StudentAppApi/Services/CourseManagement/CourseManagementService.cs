@@ -1,4 +1,5 @@
-﻿using Student.Shared.Interfaces.Repositories;
+﻿using Student.Shared.DomainModels.CourseManagement;
+using Student.Shared.Interfaces.Repositories;
 using Student.Shared.Models.Authentication;
 using Student.Shared.Models.CourseManagement;
 using StudentAppApi.Interfaces.CourseManagement;
@@ -32,6 +33,12 @@ namespace StudentAppApi.Services.CourseManagement
             return data.Select(CourseManagementMapper.ConvertCourseToResponseDTO).ToList();
         }
 
+        public async Task<List<EnrolledCourseModelDTO>> GetEnrolledCoursesAsync()
+        {
+            var data = await _enrolledCourseRepository.GetAllAsync();
+            return data.Select(CourseManagementMapper.ConvertEnrolledToResponseDTO).ToList();
+        }
+
         public async Task<List<EnrolledCourseModelDTO>> GetCoursesLinkedToStudentAsync(string id)
         {
             var data = _enrolledCourseRepository.GetBaseQueryable().Where(x=>x.StudentId == id).ToList();
@@ -50,6 +57,14 @@ namespace StudentAppApi.Services.CourseManagement
             var entity = await _courseRepository.FindEntityAsync(id);
             BuildUpdateEntity(model,entity, userClaims);
             await _courseRepository.Update(entity);
+            return true;
+        }
+
+        public async Task<bool> CreateLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model, UserClaims? userClaims)
+        {
+            var courseEntity = await _courseRepository.FindEntityAsync(model.CourseId);
+            var enrolledCourse = BuildEnrolledEntity(model, courseEntity, userClaims);
+            await _enrolledCourseRepository.Create(enrolledCourse);
             return true;
         }
 
@@ -92,6 +107,23 @@ namespace StudentAppApi.Services.CourseManagement
             entity.AvailableSeats = model.AvailableSeats;
             entity.MaxSeats = model.MaxSeats;
             entity.UpdateModified(userClaims?.Username);
+        }
+
+        public Student.Shared.DomainModels.CourseManagement.EnrolledCourse BuildEnrolledEntity(LinkBetweenStudentAndCourse model, Student.Shared.DomainModels.CourseManagement.Course courseEntity, UserClaims? userClaims)
+        {
+            var enrolledCourse = new Student.Shared.DomainModels.CourseManagement.EnrolledCourse
+            {
+                CourseCode = courseEntity.CourseCode,
+                CourseName = courseEntity.CourseName,
+                Credits = courseEntity.Credits,
+                Instructor = courseEntity.Instructor,
+                Schedule = courseEntity.Schedule,
+                StudentId = model.StudentId,
+                CourseId = courseEntity.Id,
+                CreatedBy = userClaims?.Username ?? "System",
+                CreatedOn = DateTime.UtcNow
+            };
+            return enrolledCourse;
         }
         #endregion
         #endregion
