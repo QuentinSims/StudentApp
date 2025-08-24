@@ -1,0 +1,146 @@
+﻿@page "/my-courses"
+@using Microsoft.AspNetCore.Components
+@using Student.Shared.Models.CourseManagement
+
+<PageTitle>My Courses</PageTitle>
+
+<RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" class="rz-pt-8">
+    Enrolled Courses
+</RadzenText>
+<RadzenText TextStyle="TextStyle.Subtitle1" class="rz-pb-4">
+    View and manage your current course enrollments
+</RadzenText>
+
+<RadzenCard Variant="Variant.Outlined" class="rz-my-4">
+    <RadzenDataGrid Data="@enrolledCourses"
+                    TItem="EnrolledCourse"
+                    AllowFiltering="true"
+                    AllowColumnResize="true"
+                    AllowAlternatingRows="false"
+                    FilterMode="FilterMode.Advanced"
+                    AllowSorting="true"
+                    PageSize="10"
+                    AllowPaging="true"
+                    PagerHorizontalAlign="HorizontalAlign.Left"
+                    ShowPagingSummary="true"
+                    ColumnWidth="300px"
+                    LogicalFilterOperator="LogicalFilterOperator.Or">
+
+        <Columns>
+            <RadzenDataGridColumn TItem="EnrolledCourse" Property="CourseCode" Title="Course Code" Frozen="true" Width="120px" />
+            <RadzenDataGridColumn TItem="EnrolledCourse" Property="CourseName" Title="Course Name" Width="250px" />
+            <RadzenDataGridColumn TItem="EnrolledCourse" Property="Instructor" Title="Instructor" Width="180px" />
+            <RadzenDataGridColumn TItem="EnrolledCourse" Property="Credits" Title="Credits" Width="100px" />
+            <RadzenDataGridColumn TItem="EnrolledCourse" Property="Schedule" Title="Schedule" Width="150px" />
+            <RadzenDataGridColumn TItem="EnrolledCourse" Property="EnrollmentDate" Title="Enrolled On" FormatString="{0:d}" Width="120px" />
+
+            <RadzenDataGridColumn TItem="EnrolledCourse" Context="course" Filterable="false" Sortable="false"
+                                  TextAlign="TextAlign.Center" Width="140px" Title="Actions">
+                <Template Context="course">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger"
+                                  Icon="remove_circle"
+                                  Size="ButtonSize.Small"
+                                  Shade="Shade.Lighter"
+                                  Text="Deregister"
+                                  Click=@(() => DeregisterFromCourse(course)) />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@if (enrolledCourses.Count == 0)
+{
+    <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter">
+        <RadzenIcon Icon="info" />
+        You are not currently enrolled in any courses.
+        <RadzenLink Path="/available-courses" Text="Browse available courses" /> to get started.
+    </RadzenAlert>
+}
+
+@code {
+    private List<EnrolledCourse> enrolledCourses = new();
+
+    protected override void OnInitialized()
+    {
+        LoadEnrolledCourses();
+    }
+
+    private void LoadEnrolledCourses()
+    {
+        // TODO: Replace with actual data service call
+        enrolledCourses = new List<EnrolledCourse>
+        {
+            new EnrolledCourse
+            {
+                Id = 1,
+                CourseCode = "CS101",
+                CourseName = "Introduction to Computer Science",
+                Instructor = "Dr. Smith",
+                Credits = 3,
+                Schedule = "MWF 9:00-10:00",
+                EnrollmentDate = DateTime.Now.AddDays(-30)
+            },
+            new EnrolledCourse
+            {
+                Id = 2,
+                CourseCode = "MATH201",
+                CourseName = "Calculus II",
+                Instructor = "Prof. Johnson",
+                Credits = 4,
+                Schedule = "TTH 11:00-12:30",
+                EnrollmentDate = DateTime.Now.AddDays(-25)
+            },
+            new EnrolledCourse
+            {
+                Id = 3,
+                CourseCode = "ENG102",
+                CourseName = "English Composition",
+                Instructor = "Dr. Williams",
+                Credits = 3,
+                Schedule = "MWF 2:00-3:00",
+                EnrollmentDate = DateTime.Now.AddDays(-20)
+            },
+            new EnrolledCourse
+            {
+                Id = 4,
+                CourseCode = "HIST150",
+                CourseName = "World History",
+                Instructor = "Prof. Brown",
+                Credits = 3,
+                Schedule = "TTH 1:00-2:30",
+                EnrollmentDate = DateTime.Now.AddDays(-15)
+            }
+        };
+    }
+
+    private async Task DeregisterFromCourse(EnrolledCourse course)
+    {
+        var confirmed = await DialogService.Confirm(
+            $"Are you sure you want to deregister from {course.CourseName}?",
+            "Confirm Deregistration",
+            new ConfirmOptions
+                {
+                    OkButtonText = "Yes",
+                    CancelButtonText = "No"
+                });
+
+        if (confirmed == true)
+        {
+            // TODO: Implement actual deregistration logic
+            enrolledCourses.Remove(course);
+
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Success",
+                    Detail = $"Successfully deregistered from {course.CourseName}"
+                });
+
+            StateHasChanged();
+        }
+    }
+
+    [Inject] protected DialogService DialogService { get; set; } = default!;
+    [Inject] protected NotificationService NotificationService { get; set; } = default!;
+}

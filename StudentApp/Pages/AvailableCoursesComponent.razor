@@ -1,0 +1,103 @@
+﻿@page "/available-courses"
+@using Microsoft.AspNetCore.Components
+@using Student.Shared.Models.CourseManagement
+
+<PageTitle>Available Courses</PageTitle>
+
+<RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" class="rz-pt-8">
+    Available Courses
+</RadzenText>
+<RadzenText TextStyle="TextStyle.Subtitle1" class="rz-pb-4">
+    Browse and register for available courses
+</RadzenText>
+
+<RadzenCard Variant="Variant.Outlined" class="rz-my-4">
+    <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                    Data="@availableCourses" TItem="Course" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+        <Columns>
+            <RadzenDataGridColumn TItem="Course" Property="CourseCode" Title="Course Code" Frozen="true" Width="120px" />
+            <RadzenDataGridColumn TItem="Course" Property="CourseName" Title="Course Name" Width="250px" />
+            <RadzenDataGridColumn TItem="Course" Property="Instructor" Title="Instructor" Width="180px" />
+            <RadzenDataGridColumn TItem="Course" Property="Credits" Title="Credits" Width="100px" />
+            <RadzenDataGridColumn TItem="Course" Property="Schedule" Title="Schedule" Width="150px" />
+            <RadzenDataGridColumn TItem="Course" Property="Department" Title="Department" Width="140px" />
+            <RadzenDataGridColumn TItem="Course" Property="AvailableSeats" Title="Available Seats" Width="130px" />
+            <RadzenDataGridColumn TItem="Course" Property="MaxSeats" Title="Max Seats" Width="110px" />
+            <RadzenDataGridColumn TItem="Course" Context="course" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px" Title="Actions">
+                <Template Context="course">
+                    <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="add_circle" Size="ButtonSize.Small"
+                                  Click=@(() => RegisterForCourse(course)) Text="Register"
+                                  Disabled="@(course.AvailableSeats == 0 || IsAlreadyEnrolled(course.CourseCode))" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenCard>
+
+@code {
+    [Inject] protected DialogService DialogService { get; set; } = default!;
+    [Inject] protected NotificationService NotificationService { get; set; } = default!;
+
+
+    List<Course> availableCourses = new();
+    List<string> enrolledCourseCodes = new(); // This would come from your enrolled courses service
+
+    protected override void OnInitialized()
+    {
+        LoadAvailableCourses();
+        LoadEnrolledCourseCodes();
+    }
+
+    void LoadAvailableCourses()
+    {
+        // TODO: Replace with actual data service call
+        availableCourses = new List<Course>
+        {
+            new Course { Id = Guid.NewGuid(), CourseCode = "CS102", CourseName = "Data Structures", Instructor = "Dr. Anderson", Credits = 3, Schedule = "MWF 10:00-11:00", Department = "Computer Science", AvailableSeats = 15, MaxSeats = 30 },
+            new Course { Id =  Guid.NewGuid(), CourseCode = "MATH301", CourseName = "Linear Algebra", Instructor = "Prof. Davis", Credits = 3, Schedule = "TTH 9:00-10:30", Department = "Mathematics", AvailableSeats = 8, MaxSeats = 25 },
+            new Course { Id =  Guid.NewGuid(), CourseCode = "PHYS201", CourseName = "Physics I", Instructor = "Dr. Wilson", Credits = 4, Schedule = "MWF 1:00-2:00", Department = "Physics", AvailableSeats = 0, MaxSeats = 20 },
+            new Course { Id =  Guid.NewGuid(), CourseCode = "CHEM101", CourseName = "General Chemistry", Instructor = "Prof. Taylor", Credits = 4, Schedule = "TTH 2:00-3:30", Department = "Chemistry", AvailableSeats = 12, MaxSeats = 28 },
+            new Course { Id =  Guid.NewGuid(), CourseCode = "BIO150", CourseName = "Introduction to Biology", Instructor = "Dr. Martinez", Credits = 3, Schedule = "MWF 11:00-12:00", Department = "Biology", AvailableSeats = 20, MaxSeats = 35 },
+            new Course { Id =  Guid.NewGuid(), CourseCode = "CS101", CourseName = "Introduction to Computer Science", Instructor = "Dr. Smith", Credits = 3, Schedule = "MWF 9:00-10:00", Department = "Computer Science", AvailableSeats = 5, MaxSeats = 30 },
+            new Course { Id =  Guid.NewGuid(), CourseCode = "ART120", CourseName = "Digital Art Fundamentals", Instructor = "Prof. Chen", Credits = 2, Schedule = "TTH 3:00-4:30", Department = "Fine Arts", AvailableSeats = 18, MaxSeats = 20 }
+        };
+    }
+
+    void LoadEnrolledCourseCodes()
+    {
+        // TODO: Replace with actual service call to get enrolled courses
+        enrolledCourseCodes = new List<string> { "CS101", "MATH201", "ENG102", "HIST150" };
+    }
+
+    bool IsAlreadyEnrolled(string courseCode)
+    {
+        return enrolledCourseCodes.Contains(courseCode);
+    }
+
+    async Task RegisterForCourse(Course course)
+    {
+        if (course.AvailableSeats == 0)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Registration Failed", Detail = "This course is full." });
+            return;
+        }
+
+        if (IsAlreadyEnrolled(course.CourseCode))
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Already Enrolled", Detail = $"You are already enrolled in {course.CourseName}." });
+            return;
+        }
+
+        var confirmed = await DialogService.Confirm($"Register for {course.CourseName} ({course.CourseCode})?", "Confirm Registration", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+
+        if (confirmed == true)
+        {
+            // TODO: Implement actual registration logic
+            course.AvailableSeats--;
+            enrolledCourseCodes.Add(course.CourseCode);
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Registration Successful", Detail = $"Successfully registered for {course.CourseName}" });
+            StateHasChanged();
+        }
+    }
+
+}

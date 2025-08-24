@@ -1,0 +1,152 @@
+﻿@page "/login"
+@layout AuthLayout
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using Student.Shared.Models.Authentication
+@using StudentApp.Services.AccountManagementService
+
+<PageTitle>Login - Student Portal</PageTitle>
+
+<div class="rz-p-4" style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+    <RadzenCard class="rz-shadow-10" Style="width: 100%; max-width: 400px;">
+        <RadzenStack Gap="2rem">
+            <RadzenStack Gap="1rem" class="rz-text-align-center">
+                <RadzenIcon Icon="school" Style="font-size: 4rem; color: var(--rz-primary);" />
+                <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1">Student Portal</RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-text-secondary-color">Sign in to your account</RadzenText>
+            </RadzenStack>
+
+            <EditForm Model="@_loginModel" OnValidSubmit="@HandleLogin">
+                <DataAnnotationsValidator />
+                <RadzenStack Gap="1rem">
+                    <RadzenFormField Text="Email" Variant="Variant.Outlined">
+                        <RadzenTextBox @bind-Value="@_loginModel.Email" Placeholder="Enter your email" Style="width: 100%;" />
+                        <ValidationMessage For="@(() => _loginModel.Email)" />
+                    </RadzenFormField>
+
+                    <RadzenFormField Text="Password" Variant="Variant.Outlined">
+                        <RadzenPassword @bind-Value="@_loginModel.Password" Placeholder="Enter your password" Style="width: 100%" />
+                        <ValidationMessage For="@(() => _loginModel.Password)" />
+                    </RadzenFormField>
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenCheckBox @bind-Value="@_loginModel.RememberMe" Name="rememberMe" />
+                        <RadzenLabel Text="Remember me" Component="rememberMe" />
+                    </RadzenStack>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Danger" Variant="Variant.Flat" Shade="Shade.Lighter">
+                            @errorMessage
+                        </RadzenAlert>
+                    }
+
+                    <RadzenButton ButtonType="ButtonType.Submit" Text="Sign In" Icon="login"
+                                  Style="width: 100%" Size="ButtonSize.Large" IsBusy="@isLoading"
+                                  Disabled="@(!IsFormValid())" />
+                </RadzenStack>
+            </EditForm>
+
+            <RadzenStack Gap="1rem" class="rz-text-align-center">
+                <RadzenText TextStyle="TextStyle.Body2" class="rz-text-secondary-color">
+                    Don't have an account?
+                </RadzenText>
+                <RadzenButton Text="Create Account" Icon="person_add" ButtonStyle="ButtonStyle.Secondary"
+                              Style="width: 100%" Click="@(() => NavigationManager.NavigateTo("/register"))" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenCard>
+</div>
+
+@code {
+    [Inject] IAuthService AuthService { get; set; }
+    [Inject] NavigationManager NavigationManager { get; set; }
+    [Inject] NotificationService NotificationService { get; set; }
+    [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+
+    private LoginRequestDTO _loginModel = new LoginRequestDTO();
+    private string errorMessage = "";
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+            var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+            var returnUrl = queryParams.TryGetValue("returnUrl", out var url) ? url.FirstOrDefault() : "/";
+
+            NavigationManager.NavigateTo(returnUrl ?? "/", replace: true);
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        if (!IsFormValid()) return;
+
+        isLoading = true;
+        errorMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var success = await AuthService.LoginAsync(_loginModel);
+
+            if (success)
+            {
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = "Login Successful",
+                        Detail = "Welcome back!",
+                        Duration = 4000
+                    });
+
+                // Handle return URL after successful login
+                var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+                var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+                var returnUrl = queryParams.TryGetValue("returnUrl", out var url) ? url.FirstOrDefault() : "/";
+
+                NavigationManager.NavigateTo(returnUrl ?? "/", replace: true);
+                _loginModel = new LoginRequestDTO();
+            }
+            else
+            {
+                errorMessage = "Invalid email or password. Please try again.";
+                NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "Login Failed",
+                        Detail = "Invalid email or password. Please try again.",
+                        Duration = 4000
+                    });
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred during login. Please try again.";
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Login Failed",
+                    Detail = "An error occurred during login. Please try again.",
+                    Duration = 4000
+                });
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool IsFormValid()
+    {
+        return !string.IsNullOrWhiteSpace(_loginModel.Email) &&
+               !string.IsNullOrWhiteSpace(_loginModel.Password) &&
+               _loginModel.Email.Contains("@");
+    }
+}

@@ -1,0 +1,136 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Student.Shared.Models.Authentication
+@using StudentApp.Services.AccountManagementService
+@using StudentApp.Services.AuthenicationManager
+@inherits LayoutComponentBase
+
+<RadzenTheme Theme="software-dark" />
+<RadzenComponents />
+
+<AuthorizeView>
+    <Authorized>
+        <RadzenLayout>
+            <RadzenHeader>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                             JustifyContent="JustifyContent.SpaceBetween" Gap="0"
+                             Style="padding: 0 1rem; width: 100%;">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenSidebarToggle Click="@(() => _drawerOpen = !_drawerOpen)" />
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H1">Student Portal</RadzenText>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                        <RadzenText TextStyle="TextStyle.Body2" class="rz-text-secondary-color">
+                            Welcome, @(context.User.Identity?.Name ?? "User")
+                        </RadzenText>
+                        <RadzenButton Text="Logout" Icon="logout" ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Small" Click="@Logout" />
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenHeader>
+
+            <RadzenSidebar @bind-Expanded="_drawerOpen" Style="width: 300px;">
+                <RadzenPanelMenu>
+                    <RadzenPanelMenuItem Text="Dashboard" Icon="dashboard" Path="/" />
+                    <RadzenPanelMenuItem Text="Courses" Icon="school">
+                        <RadzenPanelMenuItem Text="My Courses" Icon="bookmark" Path="/my-courses" />
+                        <RadzenPanelMenuItem Text="Available Courses" Icon="search" Path="/available-courses" />
+                    </RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Profile" Icon="person" Path="/profile" />
+                    <RadzenPanelMenuItem Text="Settings" Icon="settings" Path="/settings" />
+                </RadzenPanelMenu>
+            </RadzenSidebar>
+
+            <RadzenBody>
+                <div class="rz-p-4">
+                    @Body
+                </div>
+            </RadzenBody>
+        </RadzenLayout>
+    </Authorized>
+
+   <NotAuthorized>
+        @{          
+            NavigateToLogin();        
+         }       
+        <div class="rz-p-4" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+            <RadzenCard class="rz-shadow-10" Style="width: 100%; max-width: 400px; text-align: center;">
+                <RadzenStack Gap="2rem">
+                    <RadzenIcon Icon="lock" Style="font-size: 4rem; color: var(--rz-secondary);" />
+                    <RadzenText TextStyle="TextStyle.H5">Redirecting to Login...</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1" class="rz-text-secondary-color">
+                        Please wait while we redirect you to the login page.
+                    </RadzenText>
+                </RadzenStack>
+            </RadzenCard>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+    [Inject] IAuthService AuthService { get; set; } 
+    [Inject] NotificationService NotificationService { get; set; }
+    [Inject] NavigationManager NavigationManager { get; set; }
+    [Inject] AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+
+    private bool _drawerOpen = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == false)
+        {
+            NavigationManager.NavigateTo("/login", replace: true);
+        }
+    }
+
+    private async Task Logout()
+    {
+        try
+        {
+            await AuthService.LogoutAsync();
+
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Info,
+                    Summary = "Logged Out",
+                    Detail = "You have been successfully logged out.",
+                    Duration = 3000
+                });
+        }
+        catch (Exception)
+        {
+            NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "Logged Out",
+                    Detail = "You have been logged out locally.",
+                    Duration = 3000
+                });
+        }
+    }
+
+    private void NavigateToLogin()
+    {
+        var currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
+        if (currentUrl == "login" ||
+            currentUrl == "register" ||
+            currentUrl.StartsWith("login?") ||
+            currentUrl.StartsWith("register?"))
+        {
+            return;
+        }
+
+        Task.Run(async () =>
+        {
+            await Task.Delay(10);
+            await InvokeAsync(() =>
+            {
+                NavigationManager.NavigateTo(
+                    $"/login?returnUrl={Uri.EscapeDataString(currentUrl)}",
+                    replace: true
+                );
+            });
+        });
+    }
+}
