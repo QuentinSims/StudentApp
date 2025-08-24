@@ -35,7 +35,7 @@
             <RadzenDataGridColumn TItem="EnrolledCourseModelDTO" Property="Instructor" Title="Instructor" Width="180px" />
             <RadzenDataGridColumn TItem="EnrolledCourseModelDTO" Property="Credits" Title="Credits" Width="100px" />
             <RadzenDataGridColumn TItem="EnrolledCourseModelDTO" Property="Schedule" Title="Schedule" Width="150px" />
-            <RadzenDataGridColumn TItem="EnrolledCourseModelDTO" Property="EnrollmentDate" Title="Enrolled On" FormatString="{0:d}" Width="120px" />
+            <RadzenDataGridColumn TItem="EnrolledCourseModelDTO" Property="EnrollmentDate" Title="Enrolled On" Width="120px" />
 
             <RadzenDataGridColumn TItem="EnrolledCourseModelDTO" Context="course" Filterable="false" Sortable="false"
             TextAlign="TextAlign.Center" Width="140px" Title="Actions">
@@ -74,7 +74,7 @@
 
         if (user.Identity != null && user.Identity.IsAuthenticated)
         {
-            loggedInUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            loggedInUserId = user.FindFirst("nameid")?.Value;
         }
         await LoadEnrolledCourses();
         bool isLoading = false;
@@ -115,14 +115,15 @@
             if (success)
             {
                 enrolledCourses.Remove(course);
-
+                List<EnrolledCourseModelDTO> remainingCourses = [.. enrolledCourses];
+                enrolledCourses = new();
                 NotificationService.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Success,
                         Summary = "Success",
                         Detail = $"Successfully deregistered from {course.CourseName}"
                     });
-
+                enrolledCourses = remainingCourses;
                 StateHasChanged();
             }
             else{

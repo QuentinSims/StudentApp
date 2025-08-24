@@ -11,6 +11,6 @@ namespace StudentApp.Services.CourseService
         Task<bool> AddCourseAsync(AddEditCourseModelDTO model);
         Task<bool> UpdateCourseAsync(Guid courseId, AddEditCourseModelDTO model);
         Task<bool> DeleteLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model);
-        Task<bool> RegisterForCourseAsync(LinkBetweenStudentAndCourse model);
+        Task<EnrolledCourseModelDTO> RegisterForCourseAsync(LinkBetweenStudentAndCourse model);
     }
 }

@@ -16,7 +16,10 @@
         #region Add
         public const string BaseAdd = "Create";
         public const string AddCourse = $"{BaseAdd}Courses";
-        public const string AddLinkBetweenStudentAndCourse = $"{BaseAdd}LinkBetweenStudentAndCourse";
+        #endregion
+
+        #region register student
+        public const string AddLinkBetweenStudentAndCourse = $"RegisterStudentForCourse";
         #endregion
 
         #region Update by Id
@@ -24,9 +27,8 @@
         public const string UpdateCourse = $"{BaseUpdateById}/Courses";
         #endregion
 
-        #region Delete by Id
-        public const string BaseDeleteById = "DeleteById";
-        public const string DeleteLinkBetweenStudentAndCourse = $"{BaseDeleteById}/DeleteLinkBetweenStudentAndCourse";
+        #region deregister student from course by Id
+        public const string DeleteLinkBetweenStudentAndCourse = $"DeRegisterStudentFromCourse";
         #endregion
 
         #region account routes

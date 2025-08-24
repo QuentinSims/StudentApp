@@ -30,7 +30,7 @@
                 <Template Context="course">
                     <RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="add_circle" Size="ButtonSize.Small"
                     Click=@(() => RegisterForCourse(course)) Text="Register"
-                    Disabled="@(course.AvailableSeats == 0 || IsAlreadyEnrolled(course.CourseCode))" />
+                    Disabled="@(course.AvailableSeats == 0 || IsAlreadyEnrolled(course))" />
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
@@ -55,7 +55,7 @@
 
         if (user.Identity != null && user.Identity.IsAuthenticated)
         {
-            loggedInUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            loggedInUserId = user.FindFirst("nameid")?.Value;
         }
         await LoadAvailableCourses();
         await LoadEnrolledCourseCodes();
@@ -84,7 +84,7 @@
     {
         try
         {
-            enrolledCourses = await CourseManagementService.GetAllEnrolledCoursesAsync();
+            enrolledCourses = await CourseManagementService.GetCoursesLinkedToStudentAsync(loggedInUserId);
         }
         catch (Exception ex)
         {
@@ -94,13 +94,12 @@
                     Summary = "Error Loading enrolled Courses",
                     Detail = "Failed to load available enrolled courses. Please try again later."
                 });
-            availableCourses = new List<CourseModelDTO>();
         }
     }
 
-    bool IsAlreadyEnrolled(string courseCode)
+    bool IsAlreadyEnrolled(CourseModelDTO course)
     {
-        return enrolledCourses.Any(x => x.CourseCode == courseCode);
+        return enrolledCourses.Any(x => x.StudentId == loggedInUserId && x.CourseId == course.Id);
     }
 
     async Task RegisterForCourse(CourseModelDTO course)
@@ -111,7 +110,7 @@
             return;
         }
 
-        if (IsAlreadyEnrolled(course.CourseCode))
+        if (IsAlreadyEnrolled(course))
         {
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Warning, Summary = "Already Enrolled", Detail = $"You are already enrolled in {course.CourseName}." });
             return;
@@ -121,8 +120,9 @@
 
         if (confirmed == true)
         {
-            var success = await CourseManagementService.RegisterForCourseAsync(new LinkBetweenStudentAndCourse() { CourseId = course.Id, StudentId = loggedInUserId });
+            var result = await CourseManagementService.RegisterForCourseAsync(new LinkBetweenStudentAndCourse() { CourseId = course.Id, StudentId = loggedInUserId });
             course.AvailableSeats--;
+            enrolledCourses.Add(result);
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Registration Successful", Detail = $"Successfully registered for {course.CourseName}" });
             StateHasChanged();
         }

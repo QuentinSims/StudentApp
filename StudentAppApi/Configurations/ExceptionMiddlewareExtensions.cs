@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Student.Shared.Utilities.Exceptions;
-using System.Text.Json;
 
 namespace StudentAppApi.Configurations
 {

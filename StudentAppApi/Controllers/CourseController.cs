@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Student.Shared.Consts;
 using Student.Shared.Models.CourseManagement;
-using Student.Shared.Models.UserManagement;
 using StudentAppApi.Interfaces.Authentication;
 using StudentAppApi.Interfaces.CourseManagement;
 
@@ -62,7 +59,7 @@ namespace StudentAppApi.Controllers
         /// <param name="id">The unique identifier of the student</param>
         /// <returns>The user details</returns>
         [HttpGet]
-        [Route(ApiRoutes.GetCoursesByStudentId)]
+        [Route($"{ApiRoutes.GetCoursesByStudentId}/{{id}}")]
         [ProducesResponseType(typeof(List<EnrolledCourseModelDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -85,7 +82,7 @@ namespace StudentAppApi.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<bool>> AddCourses([FromBody] LinkBetweenStudentAndCourse model)
+        public async Task<ActionResult<bool>> RegisterStudentForCourse([FromBody] LinkBetweenStudentAndCourse model)
         {
             var result = await _courseManagementService.CreateLinkBetweenStudentAndCourseAsync(model, _claims.GetUserClaims());
             return Ok(result);
@@ -97,13 +94,18 @@ namespace StudentAppApi.Controllers
         /// <param name="id">The unique identifier of the student</param>
         /// <returns>Status result</returns>
         [HttpDelete]
-        [Route(ApiRoutes.DeleteLinkBetweenStudentAndCourse)]
+        [Route($"{{courseId}}/{ApiRoutes.DeleteLinkBetweenStudentAndCourse}/{{studentId}}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<bool>> DeleteLinkBetweenStudentAndCourse([FromBody] LinkBetweenStudentAndCourse model)
+        public async Task<ActionResult<bool>> DeleteLinkBetweenStudentAndCourse(Guid courseId, string studentId)
         {
+            LinkBetweenStudentAndCourse model = new LinkBetweenStudentAndCourse
+            {
+                CourseId = courseId,
+                StudentId = studentId
+            };
             var result = await _courseManagementService.DeleteLinkBetweenStudentAndCourseAsync(model, _claims.GetUserClaims());
             return Ok(result);
         }

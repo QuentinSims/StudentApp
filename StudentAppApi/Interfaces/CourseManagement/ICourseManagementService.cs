@@ -10,7 +10,7 @@ namespace StudentAppApi.Interfaces.CourseManagement
         Task<List<EnrolledCourseModelDTO>> GetEnrolledCoursesAsync();
         Task<List<EnrolledCourseModelDTO>> GetCoursesLinkedToStudentAsync(string id);
         Task<bool> DeleteLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model, UserClaims? userClaims);
-        Task<bool> CreateLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model, UserClaims? userClaims);
+        Task<EnrolledCourseModelDTO> CreateLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model, UserClaims? userClaims);
 
     }
 }

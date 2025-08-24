@@ -1,7 +1,9 @@
-﻿using Student.Shared.DomainModels.CourseManagement;
+﻿using Microsoft.AspNetCore.Mvc.Formatters;
+using Student.Shared.DomainModels.CourseManagement;
 using Student.Shared.Interfaces.Repositories;
 using Student.Shared.Models.Authentication;
 using Student.Shared.Models.CourseManagement;
+using Student.Shared.Utilities.Exceptions;
 using StudentAppApi.Interfaces.CourseManagement;
 using StudentAppApi.Mapper.CourseManagementMapper;
 
@@ -41,26 +43,29 @@ namespace StudentAppApi.Services.CourseManagement
 
         public async Task<List<EnrolledCourseModelDTO>> GetCoursesLinkedToStudentAsync(string id)
         {
-            var data = _enrolledCourseRepository.GetBaseQueryable().Where(x=>x.StudentId == id).ToList();
+            var data = _enrolledCourseRepository.GetBaseQueryable().Where(x => x.StudentId == id).ToList();
             return data.Select(CourseManagementMapper.ConvertEnrolledToResponseDTO).ToList();
         }
 
-        public async Task<bool> CreateLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model, UserClaims? userClaims)
+        public async Task<EnrolledCourseModelDTO> CreateLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model, UserClaims? userClaims)
         {
             var courseEntity = await _courseRepository.FindEntityAsync(model.CourseId);
+            CourseValidation(courseEntity);
+            await EnrolledValidation(courseEntity, model.StudentId);
             var enrolledCourse = BuildEnrolledEntity(model, courseEntity, userClaims);
             await _enrolledCourseRepository.Create(enrolledCourse);
-            return true;
+            courseEntity.AvailableSeats--;
+            await _courseRepository.Update(courseEntity);
+            return CourseManagementMapper.ConvertEnrolledToResponseDTO(enrolledCourse);
         }
 
         public async Task<bool> DeleteLinkBetweenStudentAndCourseAsync(LinkBetweenStudentAndCourse model, UserClaims? userClaims)
         {
             var courseEntity = await _courseRepository.FindEntityAsync(model.CourseId);
-            var entity = _enrolledCourseRepository.GetBaseQueryable()
-                .FirstOrDefault(x => x.StudentId == model.StudentId && x.CourseCode == courseEntity.CourseCode);
-            if (entity != null)
+            var enrolledEntity = await DeEnrollValidation(courseEntity, model.StudentId);
+            if (enrolledEntity != null)
             {
-                await _enrolledCourseRepository.Delete(entity);
+                await _enrolledCourseRepository.Delete(enrolledEntity);
             }
             return true;
         }
@@ -93,6 +98,30 @@ namespace StudentAppApi.Services.CourseManagement
             entity.MaxSeats = model.MaxSeats;
             entity.UpdateModified(userClaims?.Username);
         }
+        public void CourseValidation(Student.Shared.DomainModels.CourseManagement.Course courseEntity)
+        {
+            if (courseEntity.AvailableSeats <= 0)
+            {
+                throw new BadRequestModelException("No more seats available in this course.");
+            }
+        }
+        public async Task EnrolledValidation(Student.Shared.DomainModels.CourseManagement.Course courseEntity, string studentId)
+        {
+            var entityEnrolled = _enrolledCourseRepository.GetBaseQueryable().Where(x => x.CourseId == courseEntity.Id && x.StudentId == studentId).FirstOrDefault();
+            if (entityEnrolled is not null)
+            {
+                throw new BadRequestModelException("Student already enrolled in course");
+            }
+        }
+        public async Task<Student.Shared.DomainModels.CourseManagement.EnrolledCourse> DeEnrollValidation(Student.Shared.DomainModels.CourseManagement.Course courseEntity, string studentId)
+        {
+            var entityEnrolled = _enrolledCourseRepository.GetBaseQueryable().Where(x => x.CourseId == courseEntity.Id && x.StudentId == studentId).FirstOrDefault();
+            if (entityEnrolled is null)
+            {
+                throw new BadRequestModelException("Student not currently enrolled for course, cannot deregister student from course.");
+            }
+            return entityEnrolled;
+        }
         public Student.Shared.DomainModels.CourseManagement.EnrolledCourse BuildEnrolledEntity(LinkBetweenStudentAndCourse model, Student.Shared.DomainModels.CourseManagement.Course courseEntity, UserClaims? userClaims)
         {
             var enrolledCourse = new Student.Shared.DomainModels.CourseManagement.EnrolledCourse
@@ -102,6 +131,7 @@ namespace StudentAppApi.Services.CourseManagement
                 Credits = courseEntity.Credits,
                 Instructor = courseEntity.Instructor,
                 Schedule = courseEntity.Schedule,
+                EnrollmentDate = DateTime.UtcNow,
                 StudentId = model.StudentId,
                 CourseId = courseEntity.Id,
                 CreatedBy = userClaims?.Username ?? "System",
@@ -111,8 +141,5 @@ namespace StudentAppApi.Services.CourseManagement
         }
         #endregion
         #endregion
-
-
-
     }
 }
